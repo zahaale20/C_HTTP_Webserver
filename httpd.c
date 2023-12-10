@@ -9,6 +9,15 @@
 #include <errno.h>    
 #include <sys/stat.h>
 
+// signal handler for cleaning up child processes
+void sigchld_handler(int s) {
+   // waitpid() might overwrite errno, so we save and restore it
+   int saved_errno = errno;
+   while(waitpid(-1, NULL, WNOHANG) > 0);
+   errno = saved_errno;
+}
+
+
 // requirement 4: error responses
 void send_error_response(FILE *network, const char *status, const char *message) {
    fprintf(network, "%s\r\n", status);
