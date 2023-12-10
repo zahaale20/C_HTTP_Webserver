@@ -38,17 +38,29 @@ void run_service(int fd){
    }
 }
 
-int main(void){
-   int fd = create_service(PORT);
+// requirement 1: command-line argument for port
+int main(int argc, char *argv[]){
+  if (argc != 2) {
+     fprintf(stderr, "Usage: %s <port>\n", argv[0]);
+     exit(1);
+  }
 
-   if (fd == -1){
-      perror(0);
-      exit(1);
-   }
+  int port = atoi(argv[1]); // parse port from command-line argument
+  if (port < 1024 || port > 65535) {
+     fprintf(stderr, "Port number must be between 1024 and 65535\n");
+     exit(1);
+  }
 
-   printf("Listening on port: %d...\n", PORT);
-   run_service(fd);
-   close(fd);
+ int fd = create_service(port);
 
-   return 0;
+ if (fd == -1){
+    perror(0);
+    exit(1);
+ }
+
+ printf("Listening on port: %d...\n", port);
+ run_service(fd);
+ close(fd);
+
+ return 0;
 }
