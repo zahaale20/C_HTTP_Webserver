@@ -27,16 +27,34 @@ void handle_request(int nfd){
    fclose(network);
 }
 
+// requirement 2: handling multiple requests with child processes
 void run_service(int fd){
-   while (1){
-      int nfd = accept_connection(fd);
-      if (nfd != -1){
-         printf("Connection established...\n");
-         handle_request(nfd);
-         printf("Connection closed...\n");
-      }
-   }
+  while (1){
+
+     int nfd = accept_connection(fd);
+     if (nfd == -1) {
+        perror("accept");
+        continue;
+     }
+
+     printf("Connection established...\n");
+     pid_t pid = fork();
+    
+     if (pid == -1) { // error handling
+        perror("fork");
+        close(nfd);
+     } else if (pid == 0) { // child process
+        close(fd);
+        handle_request(nfd);
+        close(nfd);
+        printf("Connection closed...\n");
+        exit(0);
+     } else { // parent process
+        close(nfd);
+     }
+  }
 }
+
 
 // requirement 1: command-line argument for port
 int main(int argc, char *argv[]){
