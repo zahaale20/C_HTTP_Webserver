@@ -4,24 +4,11 @@
 #include <netdb.h>
 #include <unistd.h>
 
-#define PORT 6969
-
-#define MIN_ARGS 2
-#define MAX_ARGS 2
+#define MIN_ARGS 3
+#define MAX_ARGS 3
 #define SERVER_ARG_IDX 1
 
 #define USAGE_STRING "usage: %s <server address>\n"
-
-void validate_arguments(int argc, char *argv[]){
-   if (argc == 0){
-         fprintf(stderr, USAGE_STRING, "client");
-         exit(EXIT_FAILURE);
-   }
-   else if (argc < MIN_ARGS || argc > MAX_ARGS){
-         fprintf(stderr, USAGE_STRING, argv[0]);
-         exit(EXIT_FAILURE);
-   }
-}
 
 void send_request(int fd){
    char *line = NULL;
@@ -41,9 +28,9 @@ void send_request(int fd){
       printf("Enter input: ");
    }
    free(line);
-   }
+}
 
-   int connect_to_server(struct hostent *host_entry){
+int connect_to_server(struct hostent *host_entry, int port){
    int fd;
    struct sockaddr_in their_addr;
 
@@ -52,7 +39,7 @@ void send_request(int fd){
    }
 
    their_addr.sin_family = AF_INET;
-   their_addr.sin_port = htons(PORT);
+   their_addr.sin_port = htons(port);
    their_addr.sin_addr = *((struct in_addr *)host_entry->h_addr);
 
    if (connect(fd, (struct sockaddr *)&their_addr, sizeof(struct sockaddr)) == -1){
@@ -75,11 +62,21 @@ struct hostent *gethost(char *hostname){
 }
 
 int main(int argc, char *argv[]){
-   validate_arguments(argc, argv);
-   struct hostent *host_entry = gethost(argv[SERVER_ARG_IDX]);
+   if (argc < MIN_ARGS || argc > MAX_ARGS){
+      fprintf(stderr, USAGE_STRING, argv[0]);
+      exit(EXIT_FAILURE);
+   }
+
+   struct hostent *host_entry = gethostbyname(argv[SERVER_ARG_IDX]);
+
+   int port = atoi(argv[2]);
+   if (port < 1024 || port > 65535) {
+       fprintf(stderr, "Port number must be between 1024 and 65535\n");
+       exit(EXIT_FAILURE);
+   }
 
    if (host_entry){
-      int fd = connect_to_server(host_entry);
+      int fd = connect_to_server(host_entry, port);
       if (fd != -1){
          printf("\nEnter input: ");
          send_request(fd);
