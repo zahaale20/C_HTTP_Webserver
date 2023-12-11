@@ -4,10 +4,6 @@
 #include <netdb.h>
 #include <unistd.h>
 
-#define MIN_ARGS 3
-#define MAX_ARGS 3
-#define SERVER_ARG_IDX 1
-
 #define USAGE_STRING "usage: %s <server address>\n"
 
 void send_request(int fd){
@@ -62,12 +58,12 @@ struct hostent *gethost(char *hostname){
 }
 
 int main(int argc, char *argv[]){
-   if (argc < MIN_ARGS || argc > MAX_ARGS){
+   if (argc != 3){
       fprintf(stderr, USAGE_STRING, argv[0]);
       exit(EXIT_FAILURE);
    }
 
-   struct hostent *host_entry = gethostbyname(argv[SERVER_ARG_IDX]);
+   struct hostent *host_entry = gethostbyname(argv[1]);
 
    int port = atoi(argv[2]);
    if (port < 1024 || port > 65535) {
